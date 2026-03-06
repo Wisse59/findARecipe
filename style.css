@@ -1,0 +1,51 @@
+header, main, footer {
+    text-align: center;
+}
+
+/*conteneur d'une recette */
+.recette-card {
+    width: 95%; /*argeur de 95% de la page */
+    margin: 20px auto; /*20px en haut/bas et AUTO à gauche/droite */
+    
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    gap: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer; /* transforme la souris en petite main au survol */
+    transition: transform 0.2s; /* prépare une petite animation */
+}
+
+/* effet visuel quand on passe la souris dessus */
+.recette-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/*l'image de la recette*/
+.recette-img {
+    width: 150px;              /* largeur fixe pour l'image */
+    height: 100px;             /* hauteur fixe */
+    object-fit: cover;         /* l'image ne sera pas déformée si elle est rognée */
+    border-radius: 5px;
+}
+
+/*le titre titre de la recette*/
+.recette-titre {
+    font-size: 1.2rem;
+    font-weight: bold;
+    width: 250px;              /* on applique une largeur fixe pour le titre, pour équilibrer le texte */
+    flex-shrink: 0;            /* on empêche le titre de se rétrécir si l'écran est petit */
+    text-align: left;          /* on s'assure que le texte est bien aligné à gauche */
+}
+
+/*les ingrédients de la recette*/
+.recette-ingredients {
+    color: #666;             /* couleur grise pour le texte secondaire */
+    flex-grow: 1;              /* prendre tout l'espace restant à droite */
+    text-align: center;          /* forcer l'alignement à gauche */
+}

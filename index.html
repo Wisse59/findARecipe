@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Find a Recipe</title>
+    <link rel="shortcut icon" href="./assets/images/icone_site.png" />
+
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <!-- Integration de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+  <body id="app">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Find a Recipe</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="#">Accueil</a></li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="recettesDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                >Recettes</a
+              >
+              <ul class="dropdown-menu bg-dark">
+                <li>
+                  <a class="dropdown-item text-muted" href="#">Recette 1</a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-muted" href="#">Recette 2</a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-muted" href="#">Recette 3</a>
+                </li>
+                <li>
+                  <a class="dropdown-item text-muted" href="#">Parcourir</a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">S'abonner par mail</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div style="height: 70px"></div>
+    <!-- saut par rapport à la navbar -->
+
+    <header>
+      <h1>Find A Recipe</h1>
+      <h2>Le site pour tes idées de dîners</h2>
+    </header>
+
+    <main>
+      <div>
+        <input
+          type="text"
+          class="form-control mb-2"
+          placeholder="Rechercher par nom"
+          v-model="searchQuery"
+        />
+        <!--la barre de recherche-->
+        <button class="btn btn-primary" @click="resetSearch">
+          Réinitialiser
+        </button>
+      </div>
+
+      <div
+        class="recette-card"
+        v-for="recette in recettesFiltrees"
+        :key="recette.id"
+        @click="selectionnerRecette(recette)"
+        data-bs-toggle="modal"
+        data-bs-target="#recetteModal"
+      >
+        <img :src="recette.image" alt="Image recette" class="recette-img" />
+
+        <h3 class="recette-titre">{{ recette.titre }}</h3>
+        <p class="recette-ingredients">
+          <strong>Ingrédients requis :</strong><br /><br />
+          {{ recette.ingredients }}
+        </p>
+      </div>
+
+      <div v-if="recettesFiltrees.length == 0">
+        <p>Aucune recette ne correspond à "{{ searchQuery }}" !</p>
+      </div>
+      <div
+        class="modal fade"
+        id="recetteModal"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content" v-if="recetteSelectionnee">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ recetteSelectionnee.titre }}</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <div class="modal-body text-start">
+              <p>
+                <strong>Provenance :</strong> {{
+                recetteSelectionnee.details.provenance }}
+              </p>
+              <p>
+                <strong>Ustensiles :</strong> {{
+                recetteSelectionnee.details.ustensiles.join(', ') }}
+              </p>
+
+              <hr />
+              <h5>Ingrédients complets :</h5>
+              <ul>
+                <li
+                  v-for="ing in recetteSelectionnee.details.ingredientsComplets"
+                >
+                  {{ ing }}
+                </li>
+              </ul>
+
+              <hr />
+
+              <h5>Préparation :</h5>
+              <p>{{ recetteSelectionnee.details.preparation }}</p>
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>@Wissem étudiant de L3 Info à l'UPHF, sité créé en Novembre 2025</p>
+      <a href="mailto:wissemhariche59@gmail.com">Contactez moi !</a>
+    </footer>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="script.js"></script>
+    <!-- Vue.js et le fichier javascript script.js -->
+  </body>
+</html>
