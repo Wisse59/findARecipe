@@ -1,51 +1,168 @@
-header, main, footer {
-    text-align: center;
+/*base du site*/
+body {
+    background-color: #fff0f5;         /* un fond rose très léger */
+    color: #333;                       /* texte gris foncé pour la lisibilité */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow-x: hidden;                /* empêche la page d'aller de gauche à droite à cause de l'animation */
+    min-height: 100vh;                 /* prend au moins toute la hauteur de l'écran */
 }
 
-/*conteneur d'une recette */
+/*création du motif de grands carrés transparents*/
+body::before {
+    content: "";
+    position: fixed;                   /* le fond reste fixé derrière quand on descend sur la page */
+    top: -50%;                         /* on déborde largement de l'écran pour l'animation */
+    left: -50%;
+    width: 200%;                       /* on double la taille pour couvrir tout le mouvement */
+    height: 200%;
+    background-image: 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.4) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.4) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.4) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.4) 75%);
+    background-size: 150px 150px;      /* taille des carrés */
+    animation: moveSquares 120s linear infinite; /* animation très lente sur 120 secondes en boucle */
+    z-index: -1;                       /* on met ça tout au fond derrière les recettes */
+    pointer-events: none;              /* empêche les carrés de bloquer les clics de la souris */
+}
+
+/*l'animation de déplacement en diagonale vers le haut*/
+@keyframes moveSquares {
+    0% {
+        transform: translate3d(0, 0, 0); /* position de départ */
+    }
+    100% {
+        transform: translate3d(-150px, -150px, 0); /* on glisse de la taille exacte d'un carré */
+    }
+}
+
+header, main, footer {
+    text-align: center;
+    /* (Le bug de l'écran noir venait d'ici, j'ai supprimé la ligne qui causait le problème !) */
+}
+
+/*le titre principal*/
+header {
+    background: none;                  /* on enlève ton ancien fond */
+    color: #b03060;                    /* une belle couleur rose foncé un peu bordeaux */
+    padding: 30px 0;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1); /* petite ombre derrière le titre */
+}
+
+h2 {
+    color: #333;                       /* le sous-titre en gris foncé */
+    font-weight: normal;
+}
+
+/*conteneur d'une recette*/
 .recette-card {
-    width: 95%; /*argeur de 95% de la page */
-    margin: 20px auto; /*20px en haut/bas et AUTO à gauche/droite */
+    width: 95%;                        /* largeur de 95% de la page */
+    margin: 20px auto;                 /* 20px en haut/bas et AUTO à gauche/droite */
     
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    background-color: white;
-    border: 1px solid #ddd;
+    background-color: #ffffff;         /* fond bien blanc pour ressortir sur le rose */
+    border: none;                      /* on enlève la bordure */
     padding: 15px;
     gap: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    cursor: pointer; /* transforme la souris en petite main au survol */
-    transition: transform 0.2s; /* prépare une petite animation */
+    border-radius: 15px;               /* bords plus arrondis */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08); /* une ombre très douce */
+    cursor: pointer;                   /* transforme la souris en petite main au survol */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* prépare une petite animation fluide */
 }
 
-/* effet visuel quand on passe la souris dessus */
+/*effet visuel quand on passe la souris dessus*/
 .recette-card:hover {
-    transform: scale(1.02);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transform: scale(1.02);            /* la carte grossit légèrement */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12); /* l'ombre s'accentue */
 }
 
 /*l'image de la recette*/
 .recette-img {
-    width: 150px;              /* largeur fixe pour l'image */
-    height: 100px;             /* hauteur fixe */
-    object-fit: cover;         /* l'image ne sera pas déformée si elle est rognée */
-    border-radius: 5px;
+    width: 150px;                      /* largeur fixe pour l'image */
+    height: 100px;                     /* hauteur fixe */
+    object-fit: cover;                 /* l'image ne sera pas déformée si elle est rognée */
+    border-radius: 10px;               /* bords de l'image un peu ronds */
 }
 
-/*le titre titre de la recette*/
+/*le titre de la recette*/
 .recette-titre {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: bold;
-    width: 250px;              /* on applique une largeur fixe pour le titre, pour équilibrer le texte */
-    flex-shrink: 0;            /* on empêche le titre de se rétrécir si l'écran est petit */
-    text-align: left;          /* on s'assure que le texte est bien aligné à gauche */
+    color: #b03060;                    /* le titre de la recette en rose foncé */
+    width: 250px;                      /* on applique une largeur fixe pour le titre, pour équilibrer le texte */
+    flex-shrink: 0;                    /* on empêche le titre de se rétrécir si l'écran est petit */
+    text-align: left;                  /* on s'assure que le texte est bien aligné à gauche */
+    margin: 0;
 }
 
 /*les ingrédients de la recette*/
 .recette-ingredients {
-    color: #666;             /* couleur grise pour le texte secondaire */
-    flex-grow: 1;              /* prendre tout l'espace restant à droite */
-    text-align: center;          /* forcer l'alignement à gauche */
+    color: #555;                       /* couleur grise pour le texte secondaire */
+    flex-grow: 1;                      /* prendre tout l'espace restant à droite */
+    text-align: center;                /* forcer l'alignement */
+    margin: 0;
+}
+
+.recette-ingredients strong {
+    color: #333;                       /* le mot "Ingrédients requis" un peu plus sombre */
+}
+
+/*centrer et réduire la barre de recherche*/
+.search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;                         /* espace entre la barre et le bouton */
+    margin: 0 auto;
+}
+
+.search-input {
+    width: 25%;                        /* taille de la barre */
+    min-width: 250px;                  /* responsivité pour qu'elle reste lisible sur mobile */
+}
+
+/*le bloc de temps tout à droite de la carte*/
+.recette-temps {
+    width: 120px;                      /* largeur fixe pour que ça ne bouge pas */
+    flex-shrink: 0;                    /* on empêche le bloc de s'écraser sur petits écrans */
+    text-align: center;                /* on centre le texte et l'icône ensemble */
+    font-weight: bold;
+    color: #b03060;                    /* rappel de la couleur rosée */
+}
+
+/*la petite icône de temps*/
+.icone-temps {
+    width: 25px;                       /* taille de l'icône plus discrète */
+    height: auto;
+    margin-top: 5px;                   /* petit espace entre le texte et l'image */
+}
+
+/*le message texte quand la recherche ne trouve rien*/
+main p {
+    color: #555;
+    font-size: 1.1rem;
+    margin-top: 20px;
+}
+
+/*le gros bouton pour ajouter un plat au hasard*/
+.btn-success.btn-lg {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border-radius: 50px;               /* bords très arrondis */
+    transition: transform 0.3s ease;
+}
+
+.btn-success.btn-lg:hover {
+    transform: scale(1.05);            /* le bouton grossit légèrement au survol */
 }

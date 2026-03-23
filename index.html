@@ -6,18 +6,21 @@
     <title>Find a Recipe</title>
     <link rel="shortcut icon" href="./assets/images/icone_site.png" />
 
-    <link rel="stylesheet" href="style.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
       crossorigin="anonymous"
     />
-    <!-- Integration de Bootstrap -->
+
+    <!--lien avec le css-->
+    <link rel="stylesheet" href="style.css" />
+    <!--integration de Bootstrap-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </head>
   <body id="app">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #093e23!important;">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">Find a Recipe</a>
         <button
@@ -30,133 +33,276 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="#">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" @click.prevent="changerPage('menu')">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" @click.prevent="changerPage('recherche')">Recherche Avancée</a></li>
             <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="recettesDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                >Recettes</a
-              >
-              <ul class="dropdown-menu bg-dark">
-                <li>
-                  <a class="dropdown-item text-muted" href="#">Recette 1</a>
+              <a class="nav-link dropdown-toggle" href="#" id="recettesDropdown" role="button" data-bs-toggle="dropdown">Recettes</a>
+              <ul class="dropdown-menu border-0 shadow" style="background-color: #093e23 !important;">
+                <!-- on affiche les 5 recettes principales -->
+                <li v-for="recette in recettes.filter(r => ['Lasagnes à la bolognaise', 'Spaghettis au saumon fumé', 'Riz cantonais', 'Pâtes pesto', 'Frites au fromage'].includes(r.titre))" :key="'nav-' + recette.id">
+                  <a class="dropdown-item text-light" href="#" @click.prevent="selectionnerRecette(recette)" data-bs-toggle="modal" data-bs-target="#recetteModal">
+                    {{ recette.titre }}
+                  </a> <!--on affiche les 5 premieres recettes, puis autres-->
                 </li>
-                <li>
-                  <a class="dropdown-item text-muted" href="#">Recette 2</a>
-                </li>
-                <li>
-                  <a class="dropdown-item text-muted" href="#">Recette 3</a>
-                </li>
-                <li>
-                  <a class="dropdown-item text-muted" href="#">Parcourir</a>
-                </li>
+                <li><hr class="dropdown-divider bg-secondary"></li>
+                <li><a class="dropdown-item text-light" href="#" @click.prevent="changerPage('menu'); reinitialiserRecherche()">Toutes les recettes</a></li> <!-- retour a la page de base -->
               </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">S'abonner par mail</a>
-            </li>
+            
+            <!-- utilisateur NON connecté -->
+            <template v-if="!utilisateurConnecte">
+              <li class="nav-item"><button class="btn btn-outline-light btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#loginModal">Connexion</button></li>
+              <li class="nav-item"><button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#registerModal">Inscription</button></li>
+            </template>
+
+            <!-- utilisateur connecté -->
+            <template v-else>
+              <li class="nav-item">
+                <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#abonnementModal" @click="notifications = 0">
+                  Abonnements 🔔 <span class="badge bg-danger" v-if="notifications > 0">{{ notifications }}</span>
+                </a>
+              </li>
+              <li class="nav-item"><span class="nav-link text-warning">{{ utilisateurConnecte }} (Connecté)</span></li>
+              <li class="nav-item"><button class="btn btn-danger btn-sm ms-2" @click="logout">Déconnexion</button></li>
+            </template>
           </ul>
         </div>
       </div>
     </nav>
 
     <div style="height: 70px"></div>
-    <!-- saut par rapport à la navbar -->
 
+    <!-- HEADER -->
     <header>
       <h1>Find A Recipe</h1>
-      <h2>Le site pour tes idées de dîners</h2>
+      <h2>Trouves ton plat à cuisiner !</h2>
     </header>
 
     <main>
-      <div>
-        <input
-          type="text"
-          class="form-control mb-2"
-          placeholder="Rechercher par nom"
-          v-model="searchQuery"
-        />
-        <!--la barre de recherche-->
-        <button class="btn btn-primary" @click="resetSearch">
-          Réinitialiser
+      <div v-if="pageActuelle === 'menu'">
+        <!-- barre de recherche -->
+        <div class="search-container mb-4 mt-3">
+          <input type="text" class="form-control search-input" placeholder="Rechercher par nom..." v-model="rechercheTexte" />
+          <button class="btn btn-primary" @click="reinitialiserRecherche">Réinitialiser</button>
+        </div>
+
+        <div class="recette-card" v-for="recette in recettesFiltrees" :key="recette.id" @click="selectionnerRecette(recette)" data-bs-toggle="modal" data-bs-target="#recetteModal">
+          <img :src="recette.image" alt="Image recette" class="recette-img" />
+          <h3 class="recette-titre">{{ recette.titre }}</h3>
+          <p class="recette-ingredients"><strong>Ingrédients requis :</strong><br /><br />{{ recette.ingredients }}</p>
+          <div class="recette-temps">
+            <span>{{ recette.details.tempsCuisine }}</span><br />
+            <img src="./assets/images/iconeTemps.png" alt="icône temps" class="icone-temps" />
+          </div>
+        </div>
+
+        <div v-if="recettesFiltrees.length == 0">
+          <p>Aucune recette ne correspond à "{{ rechercheTexte }}" !</p>
+        </div>
+
+        <div class="text-center mt-5 mb-5" v-if="utilisateurConnecte">
+          <button class="btn btn-success btn-lg shadow" @click="ajouterPlatAleatoire">
+            ➕ Ajouter un plat au hasard
+          </button>
+        </div>
+      </div> <div v-if="pageActuelle === 'recherche'" class="container mt-4">
+        <h2 class="mb-4 text-dark">Recherche Avancée</h2>
+        
+        <div class="row mb-4 text-start mt-4">
+          <div class="col-12 mb-4 pb-3 border-bottom text-center">
+            <label class="form-label fs-5 fw-bold text-dark">
+              Temps de préparation max : <span class="text-primary">{{ tempsOptions[filtreTempsIndex].label }}</span>
+            </label><br>
+            <input type="range" class="form-range w-25 mx-auto" min="0" max="15" step="1" v-model="filtreTempsIndex" />
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <label class="form-label fw-bold fs-5 text-dark">Pays / Provenance</label>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" value="" v-model="filtrePays" id="pays-tous" />
+              <label class="form-check-label text-dark" for="pays-tous">Peu importe</label>
+            </div>
+            <div class="form-check" v-for="pays in paysDisponibles" :key="pays">
+              <input class="form-check-input" type="radio" :value="pays" v-model="filtrePays" :id="'pays-' + pays" />
+              <label class="form-check-label text-dark" :for="'pays-' + pays">{{ pays }}</label>
+            </div>
+          </div>
+
+          <div class="col-md-4 mb-3 border-start ps-4">
+            <label class="form-label fw-bold fs-5 text-dark">Ingrédients requis</label>
+            <div class="form-check" v-for="ing in ingredientsPopulaires" :key="ing">
+              <input class="form-check-input" type="checkbox" :value="ing" v-model="filtreIngredients" :id="'ing-' + ing" />
+              <label class="form-check-label text-dark" :for="'ing-' + ing">{{ ing }}</label>
+            </div>
+          </div>
+
+          <div class="col-md-4 mb-3 border-start ps-4">
+            <label class="form-label fw-bold fs-5 text-dark">Ustensiles</label>
+            <div class="form-check" v-for="ust in ustensilesPopulaires" :key="ust">
+              <input class="form-check-input" type="checkbox" :value="ust" v-model="filtreUstensiles" :id="'ust-' + ust" />
+              <label class="form-check-label text-dark" :for="'ust-' + ust">{{ ust }}</label>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-outline-danger mb-4" @click="filtrePays=''; filtreTempsIndex=15; filtreIngredients=[]; filtreUstensiles=[]">
+          Effacer les filtres
         </button>
+
+        <div class="row">
+           <div class="col-12 text-center text-dark" v-if="recettesFiltreesAvancees.length === 0">
+             <p>Aucune recette ne correspond aux critères demandés.</p>
+           </div>
+           <div class="recette-card" v-for="recette in recettesFiltreesAvancees" :key="'adv-' + recette.id" @click="selectionnerRecette(recette)" data-bs-toggle="modal" data-bs-target="#recetteModal">
+              <img :src="recette.image" alt="Image recette" class="recette-img" />
+              <h3 class="recette-titre">{{ recette.titre }}</h3>
+              <p class="recette-ingredients"><strong>Ingrédients requis :</strong><br /><br />{{ recette.ingredients }} </p>
+              <div class="recette-temps">
+                <span>{{ recette.details.tempsCuisine }}</span><br />
+                <img src="./assets/images/iconeTemps.png" alt="icône temps" class="icone-temps" />
+              </div>
+            </div> 
+        </div>
+      </div> <div class="modal fade" id="abonnementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            
+            <div class="modal-header">
+              <h5 class="modal-title">Mes alertes</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body text-start">
+              
+              <div class="bg-light p-3 rounded mb-4 border text-dark">
+                <h6 class="fw-bold mb-3">Créer une nouvelle alerte</h6>
+                
+                <label class="form-label fw-bold">Pays / Provenance</label>
+                <input type="text" class="form-control mb-3" placeholder="Ex: Italie" v-model="nouvelleAlerte.pays" />
+                
+                <label class="form-label fw-bold">Ingrédients requis</label>
+                <div class="row px-2 mb-3">
+                  <div class="col-6 form-check" v-for="ing in ingredientsPopulaires" :key="'alert-' + ing">
+                    <input class="form-check-input" type="checkbox" :value="ing" v-model="nouvelleAlerte.ingredients" :id="'alert-ing-' + ing" />
+                    <label class="form-check-label" :for="'alert-ing-' + ing">{{ ing }}</label>
+                  </div>
+                </div>
+                
+                <button class="btn btn-primary w-100" @click="ajouterAlerte">Ajouter cette alerte</button>
+              </div>
+
+              <div v-if="alertes.length > 0">
+                <h6 class="fw-bold mb-3 text-dark">Vos alertes actives ({{ alertes.length }}) :</h6>
+                <ul class="list-group mb-4">
+                  <li class="list-group-item d-flex justify-content-between align-items-center" v-for="alerte in alertes" :key="alerte.id">
+                    <div>
+                      <span v-if="alerte.pays">🌍 {{ alerte.pays }}</span>
+                      <span v-if="alerte.pays && alerte.ingredients.length > 0"> + </span>
+                      <span v-if="alerte.ingredients.length > 0">{{ alerte.ingredients.join(', ') }}</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" @click="supprimerAlerte(alerte.id)">❌</button>
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="platsNotifies.length > 0">
+                <hr>
+                <h6 class="text-success fw-bold">Nouveaux plats trouvés pour vous :</h6>
+                <ul class="list-group">
+                  <li
+                    class="list-group-item list-group-item-action cursor-pointer"
+                    v-for="plat in platsNotifies"
+                    :key="'notif-' + plat.id"
+                    @click="selectionnerRecette(plat)"
+                    data-bs-dismiss="modal"
+                    data-bs-toggle="modal"
+                    data-bs-target="#recetteModal"
+                  >
+                    {{ plat.titre }}
+                  </li>
+                </ul>
+                <button class="btn btn-sm btn-outline-secondary mt-2 w-100" @click="platsNotifies = []; notifications = 0">Vider les notifications</button>
+              </div>
+
+            </div>
+            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+            
+          </div>
+        </div>
       </div>
 
-      <div
-        class="recette-card"
-        v-for="recette in recettesFiltrees"
-        :key="recette.id"
-        @click="selectionnerRecette(recette)"
-        data-bs-toggle="modal"
-        data-bs-target="#recetteModal"
-      >
-        <img :src="recette.image" alt="Image recette" class="recette-img" />
-
-        <h3 class="recette-titre">{{ recette.titre }}</h3>
-        <p class="recette-ingredients">
-          <strong>Ingrédients requis :</strong><br /><br />
-          {{ recette.ingredients }}
-        </p>
-      </div>
-
-      <div v-if="recettesFiltrees.length == 0">
-        <p>Aucune recette ne correspond à "{{ searchQuery }}" !</p>
-      </div>
-      <div
-        class="modal fade"
-        id="recetteModal"
-        tabindex="-1"
-        aria-hidden="true"
-      >
+      <div class="modal fade" id="recetteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
           <div class="modal-content" v-if="recetteSelectionnee">
             <div class="modal-header">
               <h5 class="modal-title">{{ recetteSelectionnee.titre }}</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="modal-body text-start">
-              <p>
-                <strong>Provenance :</strong> {{
-                recetteSelectionnee.details.provenance }}
-              </p>
-              <p>
-                <strong>Ustensiles :</strong> {{
-                recetteSelectionnee.details.ustensiles.join(', ') }}
-              </p>
-
-              <hr />
-              <h5>Ingrédients complets :</h5>
-              <ul>
-                <li
-                  v-for="ing in recetteSelectionnee.details.ingredientsComplets"
-                >
-                  {{ ing }}
-                </li>
-              </ul>
-
-              <hr />
-
-              <h5>Préparation :</h5>
-              <p>{{ recetteSelectionnee.details.preparation }}</p>
+            <div class="modal-body text-center">
+              <img :src="recetteSelectionnee.image ? recetteSelectionnee.image : 'assets/images/plat_par_defaut.png'" alt="plat" class="img-fluid rounded mb-3" style="width: 240px; height: 135px; object-fit: cover;">
+              <p>Provenance : {{ recetteSelectionnee.details.provenance }}</p><hr>
+              <h5>Ustensiles requis :</h5><p>{{ recetteSelectionnee.details.ustensiles.join(', ') }}</p>
+              <h5 class="mt-3">Ingrédients :</h5>
+              <ul class="list-unstyled">
+                <li v-for="ingredient in recetteSelectionnee.details.ingredientsComplets">{{ ingredient }}</li>
+              </ul><hr>
+              <h5>Préparation :</h5><p class="text-center" style="white-space: pre-line;">{{ recetteSelectionnee.details.preparation }}</p><hr>
+              <p class="mt-3"><strong>Temps de cuisine :</strong> {{ recetteSelectionnee.details.tempsCuisine }}</p> <!--on affiche le temps de realisation du plat-->
             </div>
-
             <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Fermer
-              </button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Créer un compte</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="text" class="form-control mb-3" placeholder="Nom d'utilisateur" v-model="userInscription">
+              <input type="email" class="form-control mb-1" placeholder="Adresse email" v-model="mailInscription">
+              <div style="font-size: 0.85rem;" class="text-start ms-1 mb-3">
+                <div :class="mailInscription.length === 0 ? 'text-secondary' : (testEmailValide ? 'text-success' : 'text-danger')">Votre adresse doit contenir un '@' et finir par une extension (ex: .com)</div>
+              </div>
+              <input type="password" class="form-control mb-2" placeholder="Mot de passe" v-model="mdpInscription">
+              <div style="font-size: 0.85rem;" class="text-start ms-1">
+                <div :class="mdpInscription.length === 0 ? 'text-secondary' : (tailleMdp ? 'text-success' : 'text-danger')">10 caractères min.</div>
+                <div :class="mdpInscription.length === 0 ? 'text-secondary' : (majusculeMdp ? 'text-success' : 'text-danger')">1 majuscule min.</div>
+                <div :class="mdpInscription.length === 0 ? 'text-secondary' : (tailleMdp ? 'text-success' : 'text-danger')">1 minuscule min.</div>
+                <div :class="mdpInscription.length === 0 ? 'text-secondary' : (numMdp ? 'text-success' : 'text-danger')">1 nombre min.</div>
+                <div :class="mdpInscription.length === 0 ? 'text-secondary' : (mdpSpecial ? 'text-success' : 'text-danger')">1 caractère spécial min.</div>         <!--vert si c'est correct, rouge insuf., gris vide -->                  <!-- minimum du mdp pour la sécurité-->
+              </div>              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="button" class="btn btn-success" @click="register" :disabled="!testMdpValide" data-bs-dismiss="modal">S'inscrire</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Se connecter</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="text" class="form-control mb-3" placeholder="Email ou Nom d'utilisateur" v-model="idConnexion">
+              <input type="password" class="form-control mb-3" placeholder="Mot de passe" v-model="mdpConnexion">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+              <button type="button" class="btn btn-primary" @click="login" data-bs-dismiss="modal">Se connecter</button>
             </div>
           </div>
         </div>
@@ -165,6 +311,7 @@
 
     <footer>
       <p>@Wissem étudiant de L3 Info à l'UPHF, sité créé en Novembre 2025</p>
+      <p>Source des images : Unsplash</p>
       <a href="mailto:wissemhariche59@gmail.com">Contactez moi !</a>
     </footer>
 
